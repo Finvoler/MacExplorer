@@ -1,0 +1,52 @@
+/* Menu Items */
+"New File…" = "Nuovo file…";
+"Open Terminal Here" = "Apri nel terminale";
+"Open Folder With" = "Apri cartella con";
+"Copy Path" = "Copia percorso";
+"Copy Name" = "Copia nome";
+"Go to Parent Folder" = "Vai alla cartella superiore";
+"Other App…" = "Altra app…";
+
+/* New File Dialog */
+"New File" = "Nuovo file";
+"In: %@" = "In: %@";
+"⚠️ That isn't a valid file name." = "⚠️ Questo non è un nome file valido.";
+"⚠️ \"%@\" already exists." = "⚠️ “%@” esiste già.";
+"⚠️ Couldn't create the file here (no permission?)." = "⚠️ Impossibile creare il file qui (permessi mancanti?).";
+"Create" = "Crea";
+"Cancel" = "Annulla";
+"Save as template" = "Salva come modello";
+"Manage Templates…" = "Gestisci modelli…";
+
+/* Open Folder With Dialog */
+"Open “%@” with:" = "Apri “%@” con:";
+"Open" = "Apri";
+
+/* Main Menu */
+"About Finder Menu" = "Informazioni su Finder Menu";
+"Quit Finder Menu" = "Esci da Finder Menu";
+"Edit" = "Modifica";
+"Undo" = "Annulla";
+"Redo" = "Ripeti";
+"Cut" = "Taglia";
+"Copy" = "Copia";
+"Paste" = "Incolla";
+"Select All" = "Seleziona tutto";
+"Window" = "Finestra";
+"Close" = "Chiudi";
+
+/* Settings Window */
+"Finder Menu Settings" = "Impostazioni di Finder Menu";
+"Version %@" = "Versione %@";
+"Show in the right-click menu" = "Mostra nel menu contestuale";
+"Also on external and network drives" = "Anche sulle unità esterne e di rete";
+"Show icons" = "Mostra icone";
+"Open Terminal Here uses" = "“Apri nel terminale” usa";
+"Automatic (%@)" = "Automatico (%@)";
+"Changes apply the next time you right-click in Finder." = "Le modifiche verranno applicate al prossimo clic destro nel Finder.";
+"Choose the app for Open Terminal Here:" = "Scegli l’app per “Apri nel terminale”:";
+"Choose" = "Scegli";
+"New File templates" = "Modelli di “Nuovo file”";
+"No templates yet." = "Nessun modello ancora.";
+"Remove" = "Rimuovi";
+"Remove All" = "Rimuovi tutti";

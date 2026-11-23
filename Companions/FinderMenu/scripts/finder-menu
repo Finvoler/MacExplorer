@@ -1,0 +1,120 @@
+#!/bin/bash
+# finder-menu enable [app]   Copies Finder Menu.app into ~/Applications and turns on its Finder extension.
+#                            Without [app], uses the copy Homebrew built next to this script.
+# finder-menu disable        Turns the extension off and removes the app from ~/Applications.
+# finder-menu terminal [app] Shows or sets the terminal for Open Terminal Here ("auto" to reset).
+# finder-menu settings       Opens the settings window (menu items, terminal, New File templates).
+set -euo pipefail
+
+EXT_ID="local.findermenu.extension"
+DEST="${DEST:-$HOME/Applications}"
+INSTALLED="$DEST/Finder Menu.app"
+LSREGISTER=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+
+enable() {
+  local app="${1:-$(cd "$(dirname "$(realpath "$0")")/.." && pwd)/Finder Menu.app}"
+  if [ ! -d "$app" ]; then
+    echo "Can't find $app" >&2
+    exit 1
+  fi
+  pkill -f FinderMenuExtension.appex 2>/dev/null || true
+  mkdir -p "$DEST"
+  # Re-enabling the installed copy itself must not delete it before copying.
+  if [ "$(cd "$app" && pwd -P)" != "$(cd "$INSTALLED" 2>/dev/null && pwd -P)" ]; then
+    rm -rf "$INSTALLED"
+    # Copy to the full name: with a trailing slash ("Finder Menu.app/"), "cp -R app dir/" copies only its contents.
+    cp -R "$app" "$INSTALLED"
+  fi
+  "$LSREGISTER" -f "$INSTALLED"
+  # Registration can silently lose a race with a just-removed copy, so confirm it and retry.
+  for _ in 1 2 3 4 5; do
+    pluginkit -a "$INSTALLED/Contents/PlugIns/FinderMenuExtension.appex"
+    pluginkit -e use -i "$EXT_ID"
+    sleep 1
+    if pluginkit -m -i "$EXT_ID" | grep -q "^+.*$EXT_ID"; then
+      restart_extension
+      echo "Finder Menu is on. Right-click inside any Finder folder."
+      echo "To choose which items appear and which terminal opens: finder-menu settings"
+      return
+    fi
+  done
+  echo "Installed, but macOS didn't enable the Finder extension. Turn on \"Finder Menu\" in" >&2
+  echo "System Settings → General → Login Items & Extensions, or run: finder-menu enable" >&2
+  exit 1
+}
+
+# Right after a reinstall, Finder can start the extension twice (every menu item then shows up
+# twice) or not at all. Restart it until Finder runs exactly one copy.
+restart_extension() {
+  for _ in 1 2 3 4 5; do
+    pkill -f FinderMenuExtension.appex 2>/dev/null || true
+    sleep 1
+    pluginkit -e use -i "$EXT_ID"
+    sleep 1
+    if [ "$(finder_copies)" = 1 ]; then
+      return
+    fi
+  done
+  echo "Finder Menu is registered, but its Finder extension didn't restart cleanly." >&2
+  echo "If the menu is missing or doubled, relaunch Finder (hold Option, right-click Finder in the Dock → Relaunch)." >&2
+}
+
+# Copies of the extension that Finder itself runs. Open/Save panels in other apps run their own
+# copies, which are normal, so count only the running instances in Finder's launchd domain.
+finder_copies() {
+  launchctl print "pid/$(pgrep -xU "$UID" Finder)" 2>/dev/null |
+    grep -cE "^[[:space:]]+[1-9][0-9]*[[:space:]]+-[[:space:]]+$EXT_ID\.[0-9A-F-]+$" || true
+}
+
+disable() {
+  pluginkit -e ignore -i "$EXT_ID" 2>/dev/null || true
+  pluginkit -r "$INSTALLED/Contents/PlugIns/FinderMenuExtension.appex" 2>/dev/null || true
+  pkill -f FinderMenuExtension.appex 2>/dev/null || true
+  if [ -d "$INSTALLED" ]; then
+    "$LSREGISTER" -u "$INSTALLED"
+    rm -rf "$INSTALLED"
+  fi
+  echo "Finder Menu is off and removed from $DEST."
+}
+
+terminal() {
+  local name="${1:-}" id
+  case "$name" in
+    "")
+      if id=$(defaults read local.findermenu Terminal 2>/dev/null); then
+        local app; app=$(mdfind "kMDItemCFBundleIdentifier == '$id'" 2>/dev/null | head -1)
+        echo "Open Terminal Here uses: ${app:+$(basename "$app" .app) }($id)"
+      else
+        echo "Open Terminal Here picks automatically: the first installed of iTerm2, Ghostty, Warp,"
+        echo "WezTerm, kitty and Alacritty, otherwise Terminal."
+      fi
+      echo "Change it with: finder-menu terminal <app name>, or go back with: finder-menu terminal auto"
+      ;;
+    auto)
+      defaults delete local.findermenu Terminal 2>/dev/null || true
+      echo "Open Terminal Here will pick a terminal automatically."
+      ;;
+    *)
+      local quoted="${name//\\/\\\\}"; quoted="${quoted//\"/\\\"}"
+      if ! id=$(osascript -e "id of app \"$quoted\"" 2>/dev/null); then
+        echo "Can't find an app named \"$name\"." >&2
+        exit 1
+      fi
+      defaults write local.findermenu Terminal -string "$id"
+      echo "Open Terminal Here will now use $name ($id)."
+      ;;
+  esac
+}
+
+case "${1:-}" in
+  enable) shift; enable "$@" ;;
+  disable) disable ;;
+  terminal) shift; terminal "$@" ;;
+  settings)
+    if [ ! -d "$INSTALLED" ]; then
+      echo "Finder Menu isn't installed in $DEST. Run: finder-menu enable" >&2
+      exit 1
+    fi
+    open "$INSTALLED" ;;
+  *) echo "usage: finder-menu enable | disable | terminal [app] | settings" >&2; exit 1 ;;
+esac

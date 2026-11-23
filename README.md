@@ -7,7 +7,7 @@ Unofficial fork of Binary Quest’s MacExplorer, maintained by Finvoler. This ve
 ## 修改版功能
 
 - **在 Explorer 中显示**。在访达或其他支持 macOS 文件服务的软件里右键本地文件，选择「服务 → 在 Explorer 中显示」，即可打开所在文件夹并选中文件。
-- **复制文件地址**。在同一个「服务」菜单里复制完整路径。选中多个文件时，每个路径占一行。本机使用的访达一级菜单由独立的 Finder Sync 扩展提供，单独构建此仓库可使用「服务」入口。
+- **复制文件地址**。在同一个「服务」菜单里复制完整路径。选中多个文件时，每个路径占一行。安装本仓库的 [Finder Sync 扩展](Companions/FinderMenu) 后，这两个命令也会出现在访达的一级右键菜单中。
 - **右侧预览栏**。单击文件或用方向键切换，右侧随选区更新。支持系统快速查看可预览的文件，Markdown 在本地渲染。工具栏可开关预览，拖动分隔线可调宽，左侧目录树保留可用空间。
 - **隔空投送和目录导航**。侧栏的「隔空投送」打开苹果自带的投送窗口。常用位置增加了「应用程序」等入口，顶部地址栏跟随当前目录更新。
 
@@ -25,6 +25,18 @@ open build/Explorer.app
 ```
 
 修改版与上游使用相同的应用名和 bundle ID。已经安装原版时，可先退出原版，再从构建目录打开修改版体验。[原版下载与发行说明](https://github.com/binaryquest/MacExplorer/releases)对应 Binary Quest 发布的版本。
+
+## 安装访达一级菜单
+
+将上面生成的 `build/Explorer.app` 放入「应用程序」并打开一次，然后在仓库根目录运行：
+
+```sh
+bash Companions/FinderMenu/install.sh
+```
+
+脚本会编译并安装 `~/Applications/Finder Menu.app`，然后启用扩展。如果系统要求手动启用，在系统设置中搜索「扩展」，打开访达扩展里的 Finder Menu。右键一个本地文件，点「在 Explorer 中显示」可定位文件，点「复制路径」可复制完整路径。请保留 Explorer 和 Finder Menu 两个应用。
+
+扩展改编自 nikgrbn 的 [finder-menu](https://github.com/nikgrbn/finder-menu/tree/3276924ec50b7e97908bf30992576352386fa75e)，保留[原作者的 MIT 许可证](Companions/FinderMenu/LICENSE)。
 
 ## 许可证
 
